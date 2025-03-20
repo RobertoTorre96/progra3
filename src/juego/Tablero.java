@@ -3,9 +3,14 @@ package juego;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Random;
 
 import javax.swing.JPanel;
+
 
 
 
@@ -18,6 +23,10 @@ public class Tablero extends JPanel {
 	 */
 	
 	HashMap<String, Casilla> casillas=new HashMap<String, Casilla>();
+	ArrayList<Casilla> tabla=new ArrayList<Casilla>();
+    private static final Color[] colores = {Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW, Color.MAGENTA, Color.CYAN};
+    Color color;
+
 
 	public Tablero() {
 		
@@ -25,22 +34,52 @@ public class Tablero extends JPanel {
 		
 		setPreferredSize (new Dimension(200,200));
 
-		CrearTablero();
+		crearTablero();
 
 	}
 	
 
-	public void CrearTablero() {
-		
-		for (char f='a';f<'f';f++) {
-			for (int c=0;c<5;c++) {
-				Casilla casilla = new Casilla(f + "" + c, this);  // Crear la casilla con su coordenada
-                casilla.setPreferredSize(new Dimension(40, 40)); // Establecer el tamaño de cada casilla
-                add(casilla);  // Añadir cada casilla al panel
-                casillas.put(casilla.getCoordenada(), casilla);
-			}
-		}
-	}
+    public void crearTablero() {
+        for (char f = 'a'; f < 'f'; f++) {
+            for (int c = 0; c < 5; c++) {
+                String coordenada = f + "" + c;
+                Casilla casilla = new Casilla(coordenada);  // Crear casilla con coordenada
+                casilla.setPreferredSize(new Dimension(40, 40));
+                casillas.put(coordenada, casilla);
+                add(casilla);
+               
+                
+                // Añadir el evento de clic al a cada casilla
+                casilla.addMouseListener(new MouseAdapter() {@Override
+                    public void mouseClicked(MouseEvent e) { 
+                	
+    				// Cambiar el color al hacer clic en la casilla
+                	if (e.getButton()==e.BUTTON1) {
+                		color=colores[numRandom()];
+                		casilla.setColor(color);
+                		System.out.println(casilla.getNameColor());
+                	}
+                	
+                	
+                	
+                		
+                		//si las casillas vecinas son del mismo color se ponen gris
+                		if (color!=Color.gray) {
+                			
+                			for (Casilla c:casillasVecinas(coordenada)) {
+                				
+                				if (c != null && c.getColor() == color) {	
+                					Casilla[] casillasRelacionas=casillasRelacionadas(coordenada);
+                					reiniciarColores(casillasRelacionas);
+                				}
+                    		}
+                	  }
+                	
+                  }
+                });
+            }
+        }
+    }
 	
 	
 	public Casilla[] casillasVecinas (String coordenada) {
@@ -98,14 +137,40 @@ public class Tablero extends JPanel {
 		}
 		
 	}
-
-	public HashMap<String, Casilla> getCasillas() {
-		return casillas;
+	
+	public int numRandom () {
+	Random random=new Random();
+	return random.nextInt(6);
 	}
+	
+	 // Método para cambiar el color de la casilla al azar
+    public void cambiarColorCasilla(Casilla casilla,Color c) {
+        // Cambiar el color al azar
+        casilla.setColor(c);
+        
+        // Llamar a la función que verifica y actualiza las casillas vecinas
+        verificarVecinasYActualizar(casilla);
+    }
 
-	public Casilla getCasilla(String coordenada) {
-		return casillas.get(coordenada);
-	}
+    // Verifica las vecinas y actualiza las relacionadas si el color de alguna vecina coincide
+    public void verificarVecinasYActualizar(Casilla casilla) {
+        String coordenada = casilla.getCoordenada();
+        Color color = casilla.getColor();
+        
+        if (color != Color.gray) {
+            Casilla[] vecinas = casillasVecinas(coordenada);
+            for (Casilla vecina : vecinas) {
+                if (vecina != null && vecina.getColor() == color) {
+                    Casilla[] casillasRelacionadas = casillasRelacionadas(coordenada);
+                    reiniciarColores(casillasRelacionadas);
+                    
+                }
+            }
+        }
+    }
+
+
+
 	
 
 
